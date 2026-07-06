@@ -26,6 +26,11 @@ public class JwtTokenProvider {
         this.key = Jwts.SIG.HS256.key().build();
     }
 
+    /*
+     * Metodo per generare il token JWT
+     * @param Utente loggato
+     * @return JWT
+     */
     public String generateToken(Utente utente) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
@@ -39,6 +44,11 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    /*
+     * Metodo per validare il token (verifica alterazione)
+     * @param JWT
+     * @return true se tutto ok altrimenti false
+     */
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
@@ -51,6 +61,12 @@ public class JwtTokenProvider {
         }
     }
 
+    /* 
+     * Metodo per recuperare l'ID dell'utente dal token
+     * @param JWT
+     * @return ID Utente
+     * 
+     */
     public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parser()
                 .verifyWith(key)

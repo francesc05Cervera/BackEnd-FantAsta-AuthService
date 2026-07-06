@@ -1,3 +1,9 @@
+/*
+ * Scritto da Cervera Francesco
+ * (C) Diritti Riservati
+ * 
+ */
+
 package com.fantasta.auth_service.controller;
 
 import org.springframework.web.bind.annotation.*;

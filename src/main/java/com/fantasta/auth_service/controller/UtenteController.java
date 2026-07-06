@@ -1,3 +1,10 @@
+/*
+ * Scritto da Cervera Francesco
+ * (C) Diritti Riservati
+ * 
+ */
+
+
 package com.fantasta.auth_service.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +25,11 @@ public class UtenteController
 		this.service = service; 
 	}
 	
+	/*
+	 * Metodo che riceve la richiesta HTTP POST e delega al metodo service la verifica e registrazione 
+	 * @param RegisterRequest
+	 * @return 200 OK con JSON della response creata nel service oppure 409 CONFLICT con il messaggio di errore catchato 
+	 */
 	@PostMapping("/register")
 	public ResponseEntity<Object> register(@RequestBody RegisterRequest req)
 	{
@@ -35,6 +47,12 @@ public class UtenteController
 		
 	}
 	
+	/*
+	 * Metodo che riceve la login request e delega al service l'autenticazione e generazione del JWT
+	 * @param LoginRequest
+	 * @return 200 OK con il JSON della reponse che conterrà anche il JWT generato oppure 401 con il messaggio di errore 
+	 */
+	
 	@PostMapping("/login")
 	public ResponseEntity<Object> login(@RequestBody LoginRequest req)
 	{
@@ -50,6 +68,12 @@ public class UtenteController
 			return ResponseEntity.status(401).body(e.getMessage());
 		}
 	}
+	
+	/*
+	 * Metodo che riceve la richiesta HTTP GET al path ../me che restituisce il dettaglio di un utente identificato dal JWT
+	 * @param JWT passato nell'header della richiesta
+	 * @return 200 OK con i dettagli utente (UserDTO) oppure 404 con il messaggio di errore 
+	 */
 	
 	@GetMapping("/me")
 	public ResponseEntity<Object> me(@RequestHeader("Authorization") String authHeader) {
