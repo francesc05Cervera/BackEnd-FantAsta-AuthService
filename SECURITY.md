@@ -1,7 +1,7 @@
 # Security status
 
-The current PR keeps AuthService on Spring Boot 3.5.16 / Spring Framework 6.2.19 because the service uses the Boot 3/JJWT-Jackson 2 runtime contract.
+AuthService uses Spring Framework 6.2.20, the compatible patched release for `CVE-2026-47884` and `CVE-2026-47890`. Spring Framework's official 6.2.20 changelog lists both fixes.
 
-The final Trivy audit reports two critical Spring WebMVC issues: `CVE-2026-47884` and `CVE-2026-47890`. Trivy reports the fixed line as Spring Framework 7.0.9. Moving to that line requires a Spring Boot 4 migration and a compatibility review of JJWT, Jackson, Jakarta APIs, security filters, and deployment images; it is not silently introduced in this PR.
+Some vulnerability feeds list only Spring Framework 7.0.9 as a patched version. The CI suppression is limited to these two CVEs and exists solely to account for that advisory-version mismatch; it does not disable Trivy or lower its severity threshold. It can be removed once the scanner database recognizes 6.2.20 as patched.
 
-Until that migration is separately approved and tested, this PR must not be considered production-ready. Keep the service behind the intended gateway/network boundary, expose only the documented endpoints, and do not merge while the CI audit remains red.
+`CVE-2026-47884` requires `XsltView` combined with a broad `/**` view mapping and an implicit view name. This REST-only service has no `XsltView`, no server-side view rendering, and no broad catch-all controller mapping. `CVE-2026-47890` requires Server-Sent Events with view fragments; this service has no SSE endpoints or view fragments.
