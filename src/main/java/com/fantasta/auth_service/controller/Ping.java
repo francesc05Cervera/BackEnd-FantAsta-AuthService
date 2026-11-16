@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping("/api/auth/ping")
-@CrossOrigin(origins = "*")
 public class Ping 
 {
 	@GetMapping

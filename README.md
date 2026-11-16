@@ -48,7 +48,7 @@ Base path: `/api/user`
 | `POST` | `/register` | Registrazione nuovo utente | ❌ |
 | `POST` | `/login` | Login e ottenimento JWT | ❌ |
 | `GET`  | `/me` | Dati dell'utente corrente | ✅ `Bearer <token>` |
-| `GET`  | `/ping` | Health check del servizio | ❌ |
+| `GET`  | `/api/auth/ping` | Health check del servizio | ❌ |
 
 ### Esempi
 
@@ -67,7 +67,10 @@ Base path: `/api/user`
 **Response `200 OK`:**
 ```json
 {
-  "token": "<jwt_token>"
+  "id": 1,
+  "email": "mario.rossi@example.com",
+  "name": "Mario",
+  "surname": "Rossi"
 }
 ```
 
@@ -88,7 +91,11 @@ Base path: `/api/user`
 **Response `200 OK`:**
 ```json
 {
-  "token": "<jwt_token>"
+  "accessToken": "<jwt_token>",
+  "userId": 1,
+  "email": "mario.rossi@example.com",
+  "name": "Mario",
+  "surname": "Rossi"
 }
 ```
 
@@ -109,10 +116,11 @@ Authorization: Bearer <jwt_token>
   "id": 1,
   "email": "mario.rossi@example.com",
   "name": "Mario",
-  "surname": "Rossi",
-  "createdAt": "2026-07-04T16:00:00"
+  "surname": "Rossi"
 }
 ```
+
+**Response `401 Unauthorized`:** Credenziali Bearer assenti, scadute o non valide.
 
 **Response `404 Not Found`:** Utente non trovato.
 
@@ -149,8 +157,14 @@ spring.jpa.hibernate.ddl-auto=update
 
 # JWT
 jwt.secret=<your-secret-key-base64>
-jwt.expiration=86400000
+jwt.expiration-ms=86400000
+# Origini del frontend, separate da virgole
+auth.cors.allowed-origins=http://localhost:4200
 ```
+
+Il segreto deve contenere almeno 32 byte casuali codificati in Base64. Configura lo stesso valore su tutte le istanze di AuthService. In ambiente usa `JWT_SECRET` e `JWT_EXPIRATIONMS`. Il valore di `jwt.expiration-ms` è espresso in millisecondi e ha precedenza sul nome precedente `jwt.expiration`, ancora accettato per la migrazione.
+
+Se il servizio proviene dalla versione che generava la chiave a ogni avvio, gli utenti devono effettuare nuovamente il login. Per consentire il frontend di produzione, imposta `auth.cors.allowed-origins` o `AUTH_CORS_ALLOWEDORIGINS` con le origini previste.
 
 > ⚠️ **Non committare mai** il file `application.properties` contenente credenziali reali. Usa variabili d'ambiente in produzione.
 
@@ -184,6 +198,7 @@ docker run -p 7070:7070 \
   -e SPRING_DATASOURCE_URL=jdbc:postgresql://<host>/<db> \
   -e SPRING_DATASOURCE_USERNAME=<user> \
   -e SPRING_DATASOURCE_PASSWORD=<password> \
+  -e JWT_EXPIRATIONMS=86400000 \
   -e JWT_SECRET=<secret> \
   fantasta-auth-service
 ```

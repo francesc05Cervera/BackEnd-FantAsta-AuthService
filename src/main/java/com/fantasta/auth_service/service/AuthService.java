@@ -20,7 +20,7 @@ import com.fantasta.auth_service.exception.ExceptionRegistration;
 import com.fantasta.auth_service.exception.NotFoundException;
 import com.fantasta.auth_service.exception.BadLoginException;
 
-import java.util.Optional;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -31,12 +31,14 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final UtenteRepository utenteRepository;
+    private final String unknownUserPasswordHash;
 
     public AuthService(JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder,UtenteRepository utenteRepository) 
     {
         this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
         this.utenteRepository = utenteRepository;
+        this.unknownUserPasswordHash = passwordEncoder.encode("unused-password");
     }
     
     
@@ -59,7 +61,14 @@ public class AuthService {
     	String hashpw = passwordEncoder.encode(req.getPassword());
     	
     	Utente usr = new Utente(req.getEmail(), req.getName(), req.getSurname(), hashpw);
-    	utenteRepository.save(usr); 
+        try {
+            utenteRepository.saveAndFlush(usr);
+        } catch (DataIntegrityViolationException e) {
+            if (utenteRepository.findByEmail(req.getEmail()) != null) {
+                throw new ExceptionRegistration("Utente già esistente con la mail");
+            }
+            throw e;
+        }
     	
     	return new RegisterResponse(usr.getId(), usr.getEmail(), usr.getName(), usr.getSurname()); 
     }
@@ -74,32 +83,26 @@ public class AuthService {
      */
     public LoginResponse login(LoginRequest req) throws BadLoginException
     {
-    	Utente utente = utenteRepository.findByEmail(req.getEmail()); 
-    	if(utente == null)
-    	{
-    		throw new BadLoginException("Utente inesistente"); 
-    	}
-    	
-    	if(!passwordEncoder.matches(req.getPassword(), utente.getPasswordHash()))
-    	{
-    		throw new BadLoginException("Password Errata!");
-    	}
-    	
-    	String token = jwtTokenProvider.generateToken(utente);
+        Utente utente = utenteRepository.findByEmail(req.getEmail());
+        String hash = utente == null ? unknownUserPasswordHash : utente.getPasswordHash();
+        if (!passwordEncoder.matches(req.getPassword(), hash) || utente == null) {
+            throw new BadLoginException("Credenziali non valide");
+        }
+
+        String token = jwtTokenProvider.generateToken(utente);
     	
     	return new LoginResponse(token, utente.getId(), utente.getEmail(), utente.getName(), utente.getSurname());
     }
     
     /* 
      * Metodo per inviare le informazioni dell'utente a seguito della richiesta del client al path /me 
-     * @param JWT 
+     * @param usrID ID dell’utente estratto dal token verificato
      * @return UserDTO con tutte le informazioni dell'utente recuperato
      * 
      * Può generare una eccezione se l'utente non è stato trovato 
      */
-    public UserDTO me(String token) throws NotFoundException
+    public UserDTO me(Long usrID) throws NotFoundException
     {
-    	Long usrID = jwtTokenProvider.getUserIdFromToken(token);
     	Utente utente = utenteRepository.findByid(usrID);
     	
     	if(utente == null) { throw new NotFoundException("Nessun utente trovato col token!"); }
