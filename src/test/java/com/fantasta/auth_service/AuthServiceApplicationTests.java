@@ -24,7 +24,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:h2:mem:auth-test",
+        "spring.datasource.url=${TEST_DB_URL:jdbc:h2:mem:auth-test}",
+        "spring.datasource.username=${TEST_DB_USERNAME:sa}",
+        "spring.datasource.password=${TEST_DB_PASSWORD:}",
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "jwt.secret=" + AuthServiceApplicationTests.SECRET,
         "jwt.expiration=60000"
