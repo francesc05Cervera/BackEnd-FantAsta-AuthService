@@ -32,20 +32,8 @@ public class UtenteController
 	 * @return 200 OK con JSON della response creata nel service oppure 409 CONFLICT con il messaggio di errore catchato 
 	 */
 	@PostMapping("/register")
-	public ResponseEntity<Object> register(@Valid @RequestBody RegisterRequest req)
-	{
-		RegisterResponse res; 
-	
-		try
-		{
-			res = service.register(req);
-			return ResponseEntity.ok(res);
-		}
-		catch(ExceptionRegistration e)
-		{
-			return ResponseEntity.status(409).body(e.getMessage());
-		}
-		
+	public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest req) throws ExceptionRegistration {
+		return ResponseEntity.ok(service.register(req));
 	}
 	
 	/*
@@ -55,27 +43,12 @@ public class UtenteController
 	 */
 	
 	@PostMapping("/login")
-	public ResponseEntity<Object> login(@Valid @RequestBody LoginRequest req)
-	{
-		LoginResponse res; 
-		
-		try
-		{
-			res = service.login(req);
-			return ResponseEntity.ok(res);
-		}
-		catch(BadLoginException e)
-		{
-			return ResponseEntity.status(401).body(e.getMessage());
-		}
+	public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req) throws BadLoginException {
+		return ResponseEntity.ok(service.login(req));
 	}
 	
     @GetMapping("/me")
-    public ResponseEntity<Object> me(@AuthenticationPrincipal Long userId) {
-        try {
-            return ResponseEntity.ok(service.me(userId));
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
-        }
+    public ResponseEntity<UserDTO> me(@AuthenticationPrincipal Long userId) throws NotFoundException {
+        return ResponseEntity.ok(service.me(userId));
     }
 }

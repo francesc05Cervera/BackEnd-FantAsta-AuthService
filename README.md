@@ -160,11 +160,15 @@ jwt.secret=<your-secret-key-base64>
 jwt.expiration-ms=86400000
 # Origini del frontend, separate da virgole
 auth.cors.allowed-origins=http://localhost:4200
+# Amministratori PlayerService, separati da virgola. Il valore predefinito è vuoto.
+auth.admin-emails=admin@example.com
 ```
 
 Il segreto deve contenere almeno 32 byte casuali codificati in Base64. Configura lo stesso valore su tutte le istanze di AuthService. In ambiente usa `JWT_SECRET` e `JWT_EXPIRATIONMS`. Il valore di `jwt.expiration-ms` è espresso in millisecondi e ha precedenza sul nome precedente `jwt.expiration`, ancora accettato per la migrazione.
 
 Se il servizio proviene dalla versione che generava la chiave a ogni avvio, gli utenti devono effettuare nuovamente il login. Per consentire il frontend di produzione, imposta `auth.cors.allowed-origins` o `AUTH_CORS_ALLOWEDORIGINS` con le origini previste.
+
+Per concedere le operazioni amministrative di PlayerService, configura esplicitamente `AUTH_ADMINEMAILS` con gli indirizzi email autorizzati. Gli utenti non presenti in questa lista restano `USER`, inclusi gli account già esistenti.
 
 > ⚠️ **Non committare mai** il file `application.properties` contenente credenziali reali. Usa variabili d'ambiente in produzione.
 

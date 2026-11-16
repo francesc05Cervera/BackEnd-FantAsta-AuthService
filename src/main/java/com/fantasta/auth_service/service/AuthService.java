@@ -21,9 +21,12 @@ import com.fantasta.auth_service.exception.NotFoundException;
 import com.fantasta.auth_service.exception.BadLoginException;
 
 import org.springframework.dao.DataIntegrityViolationException;
-
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -32,13 +35,18 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UtenteRepository utenteRepository;
     private final String unknownUserPasswordHash;
+    private final Set<String> adminEmails;
 
-    public AuthService(JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder,UtenteRepository utenteRepository) 
+    public AuthService(JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder, UtenteRepository utenteRepository,
+            @Value("${auth.admin-emails:}") String configuredAdminEmails)
     {
         this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
         this.utenteRepository = utenteRepository;
         this.unknownUserPasswordHash = passwordEncoder.encode("unused-password");
+        this.adminEmails = Arrays.stream(configuredAdminEmails.split(","))
+                .map(String::trim).filter(value -> !value.isEmpty())
+                .map(String::toLowerCase).collect(Collectors.toUnmodifiableSet());
     }
     
     
@@ -89,7 +97,7 @@ public class AuthService {
             throw new BadLoginException("Credenziali non valide");
         }
 
-        String token = jwtTokenProvider.generateToken(utente);
+        String token = jwtTokenProvider.generateToken(utente, roleFor(utente.getEmail()));
     	
     	return new LoginResponse(token, utente.getId(), utente.getEmail(), utente.getName(), utente.getSurname());
     }
@@ -107,6 +115,10 @@ public class AuthService {
     	
     	if(utente == null) { throw new NotFoundException("Nessun utente trovato col token!"); }
     	
-    	return new UserDTO(utente.getId(), utente.getEmail(), utente.getName(), utente.getSurname());
+        return new UserDTO(utente.getId(), utente.getEmail(), utente.getName(), utente.getSurname(), roleFor(utente.getEmail()));
+    }
+
+    private String roleFor(String email) {
+        return adminEmails.contains(email.toLowerCase()) ? "ADMIN" : "USER";
     }
 }
