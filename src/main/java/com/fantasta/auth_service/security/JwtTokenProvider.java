@@ -59,12 +59,17 @@ public class JwtTokenProvider {
      * Generates a JWT for the authenticated user.
      */
     public String generateToken(Utente utente) {
+        return generateToken(utente, "USER");
+    }
+
+    public String generateToken(Utente utente, String role) {
         Date now = new Date();
         Date expiry = new Date(Math.addExact(now.getTime(), expirationMs));
 
         return Jwts.builder()
                 .subject(utente.getEmail())
                 .claim("userId", utente.getId())
+                .claim("role", role)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key, Jwts.SIG.HS256)

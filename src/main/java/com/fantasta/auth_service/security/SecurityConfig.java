@@ -29,7 +29,7 @@ public class SecurityConfig {
             @Value("${auth.cors.allowed-origins:http://localhost:4200}") List<String> origins) throws Exception {
         CorsConfiguration cors = new CorsConfiguration();
         cors.setAllowedOrigins(origins);
-        cors.setAllowedMethods(List.of("GET", "POST"));
+        cors.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
         cors.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", cors);
